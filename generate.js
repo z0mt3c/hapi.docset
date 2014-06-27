@@ -42,13 +42,20 @@ var createSearchIndex = function (markdown) {
         var stmt = db.prepare('INSERT OR IGNORE INTO searchIndex(name, type, path) VALUES (?, ?, ?)');
 
         var guidesRegex = /\n- *\[(?:`|)([^`\}\]]*)(?:`|)]\((#[A-Za-z\-]*)\)/g;
+
         while (matches = guidesRegex.exec(markdown)) {
             var method = matches[1];
             var anchor = matches[2];
             var type = 'Guide';
-            if (method.indexOf('(') !== -1) {
+
+            if (/^Hapi.[a-z]/g.test(method)) {
+                type = 'Property';
+            } else if (/^Hapi.[A-Z]/g.test(method)) {
+                type = 'Constructor';
+            } else if (method.indexOf('(') !== -1) {
                 type = 'Method';
             }
+
             stmt.run(method, type, 'reference.html' + anchor);
         }
 
@@ -56,22 +63,34 @@ var createSearchIndex = function (markdown) {
         while (matches = methodRegex.exec(markdown)) {
             var method = matches[1];
             var anchor = matches[2];
+
             var type = 'Property';
+            if (/^Hapi.[A-Z]/g.test(method)) {
+                var type = 'Constructor';
+            }
 
             if (method.indexOf('(') !== -1) {
                 type = 'Method';
 
                 if (method.indexOf('createServer') === 0) {
                     method = 'Hapi.' + method;
+                    type = 'Constructor';
+                } else if (method.indexOf('Pack.compose') === 0) {
+                    type = 'Constructor';
+                } else if (method.indexOf('prepareValue') === 0) {
+                    method = 'Hapi.state.'+method;
+                    type = 'Constructor';
                 } else if (method.indexOf('message') !== -1) {
                     method = 'Hapi.error.' + method;
                     type = 'Error';
+                } else if (method.indexOf('module.exports') === 0) {
+                    type = 'Plugin';
                 }
             }
 
             if (method.indexOf('new ') === 0) {
                 type = 'Constructor';
-                method = method.substr(4);
+                method = 'Hapi.' + method.substr(4);
             } else if (method.indexOf('Interface') !== -1) {
                 type = 'Interface';
                 method = 'Plugin';
@@ -85,6 +104,7 @@ var createSearchIndex = function (markdown) {
         resolve(markdown);
     });
 };
+
 
 var generateHtml = function (markdown) {
     var payload = {
@@ -118,18 +138,31 @@ var generateHtml = function (markdown) {
 
 var replaceUserContent = function (text) {
     return Q.Promise(function (resolve) {
-        console.log('HTML cleanup completed!')
         var replaced = text.replace(/user-content-/g, '');
-        resolve(replaced);
+        console.log('HTML cleanup completed!')
+        return resolve(replaced);
     });
 };
+
+var addDashAnchors = function(text) {
+    return Q.promise(function(resolve) {
+        db.each('SELECT name, type, path FROM searchIndex', function(err, row) {
+            console.log(row.name + ':' + row.type+':'+row.path);
+            var dashAnchor = '<a name="//apple_ref/cpp/'+row.type+'/'+encodeURIComponent(row.name)+'" class="dashAnchor"></a>';
+            var searchTerm = '<a name="' + row.path.split('#')[1] + '"';
+            text = text.replace(new RegExp(searchTerm, 'g'), dashAnchor+searchTerm);
+        }, function() {
+            return resolve(text);
+        });
+    });
+}
 
 var wrapInDocument = function (text) {
     return Q.Promise(function (resolve) {
         var header = fs.readFileSync('./static/header.txt');
         var footer = fs.readFileSync('./static/footer.txt');
         console.log('Body wrapped with header and footer!');
-        resolve(header + text + footer);
+        return resolve(header + text + footer);
     });
 };
 
@@ -150,8 +183,11 @@ fetchRawMarkdown(referenceUrl)
     .then(createSearchIndex)
     .then(generateHtml)
     .then(replaceUserContent)
+    .then(addDashAnchors)
     .then(wrapInDocument)
     .then(writeFile)
     .then(function (markdown) {
         console.log('Generation completed!');
+    }).catch(function(e) {
+        console.log(e);
     });
