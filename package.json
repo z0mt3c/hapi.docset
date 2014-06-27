@@ -1,0 +1,17 @@
+{
+  "name": "hapi-docset",
+  "version": "0.0.1",
+  "description": "Dash docset for hapi.js",
+  "main": "generate.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Timo Behrmann",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^2.4.1",
+    "q": "^1.0.1",
+    "request": "^2.36.0",
+    "sqlite3": "^2.2.3"
+  }
+}
