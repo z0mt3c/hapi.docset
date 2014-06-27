@@ -147,7 +147,6 @@ var replaceUserContent = function (text) {
 var addDashAnchors = function(text) {
     return Q.promise(function(resolve) {
         db.each('SELECT name, type, path FROM searchIndex', function(err, row) {
-            console.log(row.name + ':' + row.type+':'+row.path);
             var dashAnchor = '<a name="//apple_ref/cpp/'+row.type+'/'+encodeURIComponent(row.name)+'" class="dashAnchor"></a>';
             var searchTerm = '<a name="' + row.path.split('#')[1] + '"';
             text = text.replace(new RegExp(searchTerm, 'g'), dashAnchor+searchTerm);
