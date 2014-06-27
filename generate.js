@@ -36,20 +36,47 @@ var fetchRawMarkdown = function (url) {
 };
 
 var createSearchIndex = function (markdown) {
-    return Q.Promise(function(resolve) {
+    return Q.Promise(function (resolve) {
         var matches;
 
         var stmt = db.prepare('INSERT OR IGNORE INTO searchIndex(name, type, path) VALUES (?, ?, ?)');
 
-        var methodRegex = /\n[\s]*-[\s]*\[`([A-Za-z\.]*.*)`]\((#[A-Za-z\-]*)\)/g;
+        var guidesRegex = /\n- *\[(?:`|)([^`\}\]]*)(?:`|)]\((#[A-Za-z\-]*)\)/g;
+        while (matches = guidesRegex.exec(markdown)) {
+            var method = matches[1];
+            var anchor = matches[2];
+            var type = 'Guide';
+            if (method.indexOf('(') !== -1) {
+                type = 'Method';
+            }
+            stmt.run(method, type, 'reference.html' + anchor);
+        }
 
+        var methodRegex = /\n[\s]*-[\s]*\[`([A-Za-z\.]*.*)`]\((#[A-Za-z\-]*)\)/g;
         while (matches = methodRegex.exec(markdown)) {
             var method = matches[1];
             var anchor = matches[2];
             var type = 'Property';
+
             if (method.indexOf('(') !== -1) {
                 type = 'Method';
+
+                if (method.indexOf('createServer') === 0) {
+                    method = 'Hapi.' + method;
+                } else if (method.indexOf('message') !== -1) {
+                    method = 'Hapi.error.' + method;
+                    type = 'Error';
+                }
             }
+
+            if (method.indexOf('new ') === 0) {
+                type = 'Constructor';
+                method = method.substr(4);
+            } else if (method.indexOf('Interface') !== -1) {
+                type = 'Interface';
+                method = 'Plugin';
+            }
+
             stmt.run(method, type, 'reference.html' + anchor);
         }
 
