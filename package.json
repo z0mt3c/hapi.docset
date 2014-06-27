@@ -1,6 +1,6 @@
 {
   "name": "hapi-docset",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Dash docset for hapi.js",
   "main": "generate.js",
   "scripts": {
