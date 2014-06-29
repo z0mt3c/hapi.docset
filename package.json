@@ -1,7 +1,7 @@
 {
-  "name": "hapi-docset",
+  "name": "joi-docset",
   "version": "1.0.0",
-  "description": "Dash docset for hapi.js",
+  "description": "Dash docset for joi",
   "main": "generate.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
