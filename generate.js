@@ -1,20 +1,21 @@
-var fs = require('fs');
-var dbFile = './hapi.docset/Contents/Resources/docSet.dsidx';
-fs.unlink(dbFile);
-
 var Q = require('q');
 var request = require('request');
-var referenceUrl = 'https://raw.githubusercontent.com/spumko/hapi/master/docs/Reference.md';
-var documentsPath = './hapi.docset/Contents/Resources/Documents/';
+var fs = require('fs');
 var sqlite3 = require('sqlite3');
+var _ = require('lodash');
+
+var docsetName = 'hapi.docset';
+var referenceUrl = 'https://raw.githubusercontent.com/spumko/hapi/master/docs/Reference.md';
+
+var documentsPath = './' + docsetName + '/Contents/Resources/Documents/';
+var dbFile = './' + docsetName + '/Contents/Resources/docSet.dsidx';
+fs.unlink(dbFile);
 
 var db = new sqlite3.Database(dbFile);
 db.serialize(function () {
     db.run("CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);");
     db.run("CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);");
 });
-
-var _ = require('lodash');
 
 
 var prepareIndexEntry = function (method, anchor) {
