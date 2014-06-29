@@ -4,8 +4,8 @@ var fs = require('fs');
 var sqlite3 = require('sqlite3');
 var _ = require('lodash');
 
-var docsetName = 'hapi.docset';
-var referenceUrl = 'https://raw.githubusercontent.com/spumko/hapi/master/docs/Reference.md';
+var docsetName = 'joi.docset';
+var referenceUrl = 'https://raw.githubusercontent.com/spumko/joi/master/README.md';
 
 var documentsPath = './' + docsetName + '/Contents/Resources/Documents/';
 var dbFile = './' + docsetName + '/Contents/Resources/docSet.dsidx';
@@ -16,7 +16,6 @@ db.serialize(function () {
     db.run("CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);");
     db.run("CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);");
 });
-
 
 var prepareIndexEntry = function (method, anchor) {
     var type = 'Guide';
@@ -29,29 +28,20 @@ var prepareIndexEntry = function (method, anchor) {
 
     if (method.indexOf('(') !== -1) {
         type = 'Method';
-
-        if (method.indexOf('createServer') === 0) {
-            method = 'Hapi.' + method;
-            type = 'Constructor';
-        } else if (method.indexOf('Pack.compose') === 0) {
-            type = 'Constructor';
-        } else if (method.indexOf('prepareValue') === 0) {
-            method = 'Hapi.state.' + method;
-            type = 'Method';
-        } else if (method.indexOf('message') !== -1) {
-            method = 'Hapi.error.' + method;
-            type = 'Error';
-        } else if (method.indexOf('module.exports') === 0) {
-            type = 'Plugin';
+        var indexOf = method.indexOf('.');
+        if (indexOf !== -1) {
+            method = 'Joi.' + method.substr(0, indexOf) + '()' + method.substr(indexOf);
+        } else {
+            method = 'Joi.' + method;
         }
+    } else if (/^[a-z]*$/g.test(method)) {
+        method = 'Joi.'+method+'()';
+        type = 'Constructor';
     }
+
 
     if (method.indexOf('new ') === 0) {
         type = 'Constructor';
-        method = 'Hapi.' + method.substr(4);
-    } else if (method.indexOf('Interface') !== -1) {
-        type = 'Interface';
-        method = 'Plugin';
     }
 
     return {
@@ -77,6 +67,13 @@ var fetchRawMarkdown = function (url) {
                 return reject(err);
             }
         });
+    });
+};
+
+var removeHeader = function (markdown) {
+    return Q.Promise(function (resolve) {
+        markdown = "# Joi Reference" + markdown.split('<img src="https://raw.github.com/spumko/joi/master/images/validation.png" align="right" />')[1];
+        resolve(markdown);
     });
 };
 
@@ -179,6 +176,7 @@ var writeFile = function (text) {
 };
 
 fetchRawMarkdown(referenceUrl)
+    .then(removeHeader)
     .then(createSearchIndex)
     .then(generateHtml)
     .then(replaceUserContent)

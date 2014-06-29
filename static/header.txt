@@ -741,5 +741,5 @@ body .task-list{
   color:#A31515
 }
 </style>
-<title>Hapi Reference</title></head>
+<title>Joi Reference</title></head>
 <body>

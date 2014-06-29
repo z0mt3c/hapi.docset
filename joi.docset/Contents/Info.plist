@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>hapin</string>
+	<string>joi</string>
 	<key>CFBundleName</key>
-	<string>Hapi</string>
+	<string>Joi</string>
 	<key>DocSetPlatformFamily</key>
-	<string>hapi</string>
+	<string>joi</string>
 	<key>isDashDocset</key>
 	<true/>
 	<key>dashIndexFilePath</key>
