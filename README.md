@@ -1,5 +1,5 @@
 # joi.docset
-Just a simple dash docset for joi.js (https://github.com/spumko/joi). Available through dashs "user contributed" channel ;-)
+Just a simple dash docset for joi (https://github.com/spumko/joi). Available through dashs "user contributed" channel ;-)
 
 ## Generate Docset
 
