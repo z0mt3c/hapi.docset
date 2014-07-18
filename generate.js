@@ -3,19 +3,27 @@ var request = require('request');
 var fs = require('fs');
 var sqlite3 = require('sqlite3');
 var _ = require('lodash');
-
+var mkdirp = require('mkdirp');
 var docsetName = 'hapi.docset';
 var referenceUrl = 'https://raw.githubusercontent.com/spumko/hapi/master/docs/Reference.md';
 
 var documentsPath = './' + docsetName + '/Contents/Resources/Documents/';
+mkdirp(documentsPath, function (err) {});
+
 var dbFile = './' + docsetName + '/Contents/Resources/docSet.dsidx';
-fs.unlink(dbFile);
+fs.unlink(dbFile, function(error) {
+    if (!error) {
+        console.log('Previous database deleted!');
+    };
+});
 
 var db = new sqlite3.Database(dbFile);
 db.serialize(function () {
     db.run("CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);");
     db.run("CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);");
 });
+
+var hapiVersion = "NO-VERSION";
 
 
 var prepareIndexEntry = function (method, anchor) {
@@ -77,6 +85,18 @@ var fetchRawMarkdown = function (url) {
                 return reject(err);
             }
         });
+    });
+};
+
+var echoVersion = function (markdown) {
+    return Q.Promise(function (resolve) {
+        var versionMatcher = /^# ([\d\.xX]*)/g;
+        var match = versionMatcher.exec(markdown);
+        if (match) {
+            console.log('Hapi version: '+match[1]);
+            hapiVersion = match[1];
+        }
+        resolve(markdown);
     });
 };
 
@@ -179,6 +199,7 @@ var writeFile = function (text) {
 };
 
 fetchRawMarkdown(referenceUrl)
+    .then(echoVersion)
     .then(createSearchIndex)
     .then(generateHtml)
     .then(replaceUserContent)
@@ -186,7 +207,7 @@ fetchRawMarkdown(referenceUrl)
     .then(wrapInDocument)
     .then(writeFile)
     .then(function (markdown) {
-        console.log('Generation completed!');
+        console.log('Generation of hapi.docset version '+hapiVersion+' completed!');
     }).catch(function (e) {
         console.log(e);
     });
