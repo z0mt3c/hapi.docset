@@ -5,7 +5,7 @@ var sqlite3 = require('sqlite3');
 var _ = require('lodash');
 
 var docsetName = 'joi.docset';
-var referenceUrl = 'https://raw.githubusercontent.com/spumko/joi/master/README.md';
+var referenceUrl = 'https://raw.githubusercontent.com/hapijs/joi/master/README.md';
 
 var documentsPath = './' + docsetName + '/Contents/Resources/Documents/';
 var dbFile = './' + docsetName + '/Contents/Resources/docSet.dsidx';
@@ -72,7 +72,7 @@ var fetchRawMarkdown = function (url) {
 
 var removeHeader = function (markdown) {
     return Q.Promise(function (resolve) {
-        markdown = "# Joi Reference" + markdown.split('<img src="https://raw.github.com/spumko/joi/master/images/validation.png" align="right" />')[1];
+        markdown = "# Joi Reference" + markdown.split('<img src="https://raw.github.com/hapijs/joi/master/images/validation.png" align="right" />')[1];
         resolve(markdown);
     });
 };
