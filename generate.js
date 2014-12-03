@@ -29,26 +29,20 @@ var hapiVersion = "NO-VERSION";
 var prepareIndexEntry = function (method, anchor) {
     var type = 'Guide';
 
-    if (/^(?:Hapi|plugin).[a-z]/g.test(method)) {
+    if (/^(?:server).[a-z]/g.test(method)) {
         type = 'Property';
     } else if (/^Hapi.[A-Z]/g.test(method)) {
         type = 'Constructor';
+    } else if (method === 'Server') {
+        type = 'Object';
     }
 
     if (method.indexOf('(') !== -1) {
         type = 'Method';
 
-        if (method.indexOf('createServer') === 0) {
-            method = 'Hapi.' + method;
-            type = 'Constructor';
-        } else if (method.indexOf('Pack.compose') === 0) {
-            type = 'Constructor';
-        } else if (method.indexOf('prepareValue') === 0) {
+        if (method.indexOf('prepareValue') === 0) {
             method = 'Hapi.state.' + method;
             type = 'Method';
-        } else if (method.indexOf('message') !== -1) {
-            method = 'Hapi.error.' + method;
-            type = 'Error';
         } else if (method.indexOf('module.exports') === 0) {
             type = 'Plugin';
         }
@@ -56,7 +50,7 @@ var prepareIndexEntry = function (method, anchor) {
 
     if (method.indexOf('new ') === 0) {
         type = 'Constructor';
-        method = 'Hapi.' + method.substr(4);
+        method = method.substr(4);
     } else if (method.indexOf('Interface') !== -1) {
         type = 'Interface';
         method = 'Plugin';
