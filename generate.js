@@ -5,7 +5,7 @@ var sqlite3 = require('sqlite3');
 var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var docsetName = 'hapi.docset';
-var referenceUrl = 'https://raw.githubusercontent.com/hapijs/hapi/master/docs/Reference.md';
+var referenceUrl = 'https://raw.githubusercontent.com/hapijs/hapi/master/API.md';
 
 var documentsPath = './' + docsetName + '/Contents/Resources/Documents/';
 mkdirp(documentsPath, function (err) {});
