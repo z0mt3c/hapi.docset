@@ -10,7 +10,7 @@ var referenceUrl = 'https://raw.githubusercontent.com/hapijs/joi/master/README.m
 
 var documentsPath = Path.join(__dirname, './' + docsetName + '/Contents/Resources/Documents/');
 var dbFile = Path.join(__dirname, './' + docsetName + '/Contents/Resources/docSet.dsidx');
-fs.unlink(dbFile);
+fs.unlink(dbFile, function() {});
 
 var db = new sqlite3.Database(dbFile);
 db.serialize(function () {
