@@ -3,12 +3,13 @@ var request = require('request');
 var fs = require('fs');
 var sqlite3 = require('sqlite3');
 var _ = require('lodash');
+var Path = require('path');
 
 var docsetName = 'joi.docset';
 var referenceUrl = 'https://raw.githubusercontent.com/hapijs/joi/master/README.md';
 
-var documentsPath = './' + docsetName + '/Contents/Resources/Documents/';
-var dbFile = './' + docsetName + '/Contents/Resources/docSet.dsidx';
+var documentsPath = Path.join(__dirname, './' + docsetName + '/Contents/Resources/Documents/');
+var dbFile = Path.join(__dirname, './' + docsetName + '/Contents/Resources/docSet.dsidx');
 fs.unlink(dbFile);
 
 var db = new sqlite3.Database(dbFile);
