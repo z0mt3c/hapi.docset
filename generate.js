@@ -3,14 +3,22 @@ var request = require('request');
 var fs = require('fs');
 var sqlite3 = require('sqlite3');
 var _ = require('lodash');
+var mkdirp = require('mkdirp');
 var Path = require('path');
 
 var docsetName = 'joi.docset';
 var referenceUrl = 'https://raw.githubusercontent.com/hapijs/joi/master/README.md';
 
 var documentsPath = Path.join(__dirname, './' + docsetName + '/Contents/Resources/Documents/');
+mkdirp(documentsPath, function (err) {});
+
 var dbFile = Path.join(__dirname, './' + docsetName + '/Contents/Resources/docSet.dsidx');
-fs.unlink(dbFile, function() {});
+fs.unlink(dbFile, function(error) {
+    if (!error) {
+        console.log('Previous database deleted!');
+    };
+});
+
 
 var db = new sqlite3.Database(dbFile);
 db.serialize(function () {
