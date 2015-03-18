@@ -6,11 +6,12 @@ var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var docsetName = 'hapi.docset';
 var referenceUrl = 'https://raw.githubusercontent.com/hapijs/hapi/master/API.md';
+var Path = require('path');
 
-var documentsPath = './' + docsetName + '/Contents/Resources/Documents/';
+var documentsPath = Path.join(__dirname, './' + docsetName + '/Contents/Resources/Documents/');
 mkdirp(documentsPath, function (err) {});
 
-var dbFile = './' + docsetName + '/Contents/Resources/docSet.dsidx';
+var dbFile = Path.join(__dirname, './' + docsetName + '/Contents/Resources/docSet.dsidx');
 fs.unlink(dbFile, function(error) {
     if (!error) {
         console.log('Previous database deleted!');
