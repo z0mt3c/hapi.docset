@@ -9,23 +9,10 @@ var referenceUrl = 'https://raw.githubusercontent.com/hapijs/hapi/master/API.md'
 var Path = require('path');
 
 var documentsPath = Path.join(__dirname, './' + docsetName + '/Contents/Resources/Documents/');
-mkdirp(documentsPath, function (err) {});
-
 var dbFile = Path.join(__dirname, './' + docsetName + '/Contents/Resources/docSet.dsidx');
-fs.unlink(dbFile, function(error) {
-    if (!error) {
-        console.log('Previous database deleted!');
-    };
-});
-
-var db = new sqlite3.Database(dbFile);
-db.serialize(function () {
-    db.run("CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);");
-    db.run("CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);");
-});
+var db;
 
 var hapiVersion = "NO-VERSION";
-
 
 var prepareIndexEntry = function (method, anchor) {
     var type = 'Guide';
@@ -120,7 +107,6 @@ var createSearchIndex = function (markdown) {
     });
 };
 
-
 var generateHtml = function (markdown) {
     var payload = {
         text: markdown,
@@ -169,7 +155,7 @@ var addDashAnchors = function (text) {
             return resolve(text);
         });
     });
-}
+};
 
 var wrapInDocument = function (text) {
     return Q.Promise(function (resolve) {
@@ -193,16 +179,30 @@ var writeFile = function (text) {
     });
 };
 
-fetchRawMarkdown(referenceUrl)
-    .then(echoVersion)
-    .then(createSearchIndex)
-    .then(generateHtml)
-    .then(replaceUserContent)
-    .then(addDashAnchors)
-    .then(wrapInDocument)
-    .then(writeFile)
-    .then(function (markdown) {
-        console.log('Generation of hapi.docset version '+hapiVersion+' completed!');
-    }).catch(function (e) {
-        console.log(e);
+mkdirp(documentsPath, function (err) {
+    fs.unlink(dbFile, function(error) {
+        if (!error) {
+            console.log('Previous database deleted!');
+        }
+
+        db = new sqlite3.Database(dbFile);
+        db.serialize(function () {
+            db.run("CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);");
+            db.run("CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);");
+
+            fetchRawMarkdown(referenceUrl)
+                .then(echoVersion)
+                .then(createSearchIndex)
+                .then(generateHtml)
+                .then(replaceUserContent)
+                .then(addDashAnchors)
+                .then(wrapInDocument)
+                .then(writeFile)
+                .then(function (markdown) {
+                    console.log('Generation of hapi.docset version '+hapiVersion+' completed!');
+                }).catch(function (e) {
+                    console.log(e);
+                });
+        });
     });
+});
