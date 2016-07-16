@@ -1,6 +1,6 @@
 {
   "name": "joi-docset",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Dash docset for joi",
   "main": "generate.js",
   "scripts": {
@@ -13,6 +13,6 @@
     "mkdirp": "^0.5.0",
     "q": "^1.0.1",
     "request": "^2.36.0",
-    "sqlite3": "^2.2.3"
+    "sqlite3": "^3.0.10"
   }
 }

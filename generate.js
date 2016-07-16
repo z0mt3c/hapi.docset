@@ -5,12 +5,14 @@ var sqlite3 = require('sqlite3');
 var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var docsetName = 'joi.docset';
-var referenceUrl = 'https://raw.githubusercontent.com/hapijs/joi/master/README.md';
+var referenceUrl = 'https://raw.githubusercontent.com/hapijs/joi/master/API.md';
 var Path = require('path');
 
 var documentsPath = Path.join(__dirname, './' + docsetName + '/Contents/Resources/Documents/');
 var dbFile = Path.join(__dirname, './' + docsetName + '/Contents/Resources/docSet.dsidx');
-var db; 
+var db;
+
+var joiVersion = "NO-VERSION";
 
 var prepareIndexEntry = function (method, anchor) {
     var type = 'Guide';
@@ -33,7 +35,6 @@ var prepareIndexEntry = function (method, anchor) {
         method = 'Joi.'+method+'()';
         type = 'Constructor';
     }
-
 
     if (method.indexOf('new ') === 0) {
         type = 'Constructor';
@@ -66,8 +67,29 @@ var fetchRawMarkdown = function (url) {
 };
 
 var removeHeader = function (markdown) {
+    return Q.Promise(function (resolve, reject) {
+        var replaced = false;
+        markdown = markdown.replace(/^<!-- version -->\s*?(# [\d\.xX]* API Reference)\s*?<!-- versionstop -->\s*?<img src="https:\/\/raw.github.com\/hapijs\/joi\/master\/images\/validation\.png" align="right" \/>\s*?<!-- toc -->/, function (match, $1) {
+            replaced = true;
+            return $1;
+        });
+        if (replaced) {
+            return resolve(markdown);
+        }
+        else {
+            return reject(new Error('Unable to match header for removal'));
+        }
+    });
+};
+
+var echoVersion = function (markdown) {
     return Q.Promise(function (resolve) {
-        markdown = "# Joi Reference" + markdown.split('<img src="https://raw.github.com/hapijs/joi/master/images/validation.png" align="right" />')[1];
+        var versionMatcher = /^# ([\d\.xX]*)/g;
+        var match = versionMatcher.exec(markdown);
+        if (match) {
+            console.log('Joi version: '+match[1]);
+            joiVersion = match[1];
+        }
         resolve(markdown);
     });
 };
@@ -96,7 +118,6 @@ var createSearchIndex = function (markdown) {
         resolve(markdown);
     });
 };
-
 
 var generateHtml = function (markdown) {
     var payload = {
@@ -146,7 +167,7 @@ var addDashAnchors = function (text) {
             return resolve(text);
         });
     });
-}
+};
 
 var wrapInDocument = function (text) {
     return Q.Promise(function (resolve) {
@@ -170,23 +191,20 @@ var writeFile = function (text) {
     });
 };
 
-
-
-
 mkdirp(documentsPath, function (err) {
     fs.unlink(dbFile, function(error) {
         if (!error) {
             console.log('Previous database deleted!');
-        };
+        }
 
-        db = new sqlite3.Database(dbFile); 
+        db = new sqlite3.Database(dbFile);
         db.serialize(function () {
             db.run("CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);");
             db.run("CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);");
 
-
             fetchRawMarkdown(referenceUrl)
                 .then(removeHeader)
+                .then(echoVersion)
                 .then(createSearchIndex)
                 .then(generateHtml)
                 .then(replaceUserContent)
@@ -194,7 +212,7 @@ mkdirp(documentsPath, function (err) {
                 .then(wrapInDocument)
                 .then(writeFile)
                 .then(function (markdown) {
-                    console.log('Generation completed!');
+                    console.log('Generation of joi.docset version '+joiVersion+' completed!');
                 }).catch(function (e) {
                     console.log(e);
                 });
